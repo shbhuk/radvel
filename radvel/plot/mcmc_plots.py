@@ -17,7 +17,7 @@ Module for plotting results of MCMC analysis, including:
 
 class TrendPlot(object):
     """
-    Class to handle the creation of a trend plot to show 
+    Class to handle the creation of a trend plot to show
     the evolution of the MCMC as a function of step number.
 
     Args:
@@ -25,7 +25,7 @@ class TrendPlot(object):
         chains (DataFrame): MCMC chains output by radvel.mcmc
         nwalkers (int): number of walkers used in this particular MCMC run
         outfile (string [optional]): name of output multi-page PDF file
-        
+
     """
 
     def __init__(self, post, chains, nwalkers, nensembles, outfile=None):
@@ -120,15 +120,15 @@ class AutoPlot(object):
 
 class CornerPlot(object):
     """
-    Class to handle the creation of a corner plot from output 
+    Class to handle the creation of a corner plot from output
     MCMC chains and a posterior object.
 
     Args:
         post (radvel.Posterior): radvel posterior object
         chains (DataFrame): MCMC chains output by radvel.mcmc
-        saveplot (str, optional):  Name of output file, will show as 
+        saveplot (str, optional):  Name of output file, will show as
             interactive matplotlib window if not defined.
-    
+
     """
     def __init__(self, post, chains, saveplot=None):
 
@@ -138,7 +138,7 @@ class CornerPlot(object):
 
         self.labels = [k for k in post.params.keys() if post.params[k].vary]
         self.texlabels = [post.params.tex_labels().get(l, l) for l in self.labels]
-    
+
     def plot(self):
         """
         Make and either save or display the corner plot
@@ -152,12 +152,12 @@ class CornerPlot(object):
             plot_datapoints=False, bins=30, quantiles=[0.16, 0.5, 0.84],
             show_titles=True, title_kwargs={"fontsize": 14}, smooth=True
         )
-    
+
         if self.saveplot is not None:
             pl.savefig(self.saveplot, dpi=150)
             print("Corner plot saved to %s" % self.saveplot)
         else:
-            pl.show()
+            pl.show(block=False)
 
         rcParams['font.size'] = f
 
@@ -170,9 +170,9 @@ class DerivedPlot(object):
     Args:
         chains (DataFrame): MCMC chains output by radvel.mcmc
         P:  object representation of config file
-        saveplot (Optional[string]: Name of output file, will show as 
+        saveplot (Optional[string]: Name of output file, will show as
             interactive matplotlib window if not defined.
-    
+
     """
 
     def __init__(self, chains, P, saveplot=None):
@@ -194,11 +194,11 @@ class DerivedPlot(object):
 
             for key in 'mpsini rhop a'.split():
                 label = '{}{}'.format(key, i)
-                
+
                 is_column = list(self.chains.columns).count(label) == 1
                 if not is_column:
                     continue
-                
+
                 null_column = self.chains.isnull().any().loc[label]
                 if null_column:
                     continue
@@ -243,7 +243,7 @@ class DerivedPlot(object):
             plot_datapoints=False, bins=30, quantiles=[0.16, 0.50, 0.84],
             show_titles=True, title_kwargs={"fontsize": 14}, smooth=True
         )
-        
+
         if self.saveplot is not None:
             pl.savefig(self.saveplot, dpi=150)
             print("Derived plot saved to %s" % self.saveplot)

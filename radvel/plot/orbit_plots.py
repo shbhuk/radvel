@@ -36,18 +36,18 @@ class MultipanelPlot(object):
                      'harps-n' dict(fmt='s')
                 }
         legend (bool, optional): include legend on plot? Default: True.
-        phase_limits (list, optional): two element list specifying 
+        phase_limits (list, optional): two element list specifying
             pyplot.xlim bounds for phase-folded plots. Useful for
             partial orbits.
         nobin (bool, optional): If True do not show binned data on
             phase plots. Will default to True if total number of
             measurements is less then 20.
         phasetext_size (string, optional): fontsize for text in phase plots.
-            Choice of {'xx-small', 'x-small', 'small', 'medium', 'large', 
+            Choice of {'xx-small', 'x-small', 'small', 'medium', 'large',
             'x-large', 'xx-large'}. Default: 'x-small'.
         rv_phase_space (float, optional): amount of space to leave between orbit/residual plot
             and phase plots.
-        figwidth (float, optional): width of the figures to be produced. 
+        figwidth (float, optional): width of the figures to be produced.
             Default: 7.5 (spans a page with 0.5 in margins)
         fit_linewidth (float, optional): linewidth to use for orbit model lines in phase-folded
             plots and residuals plots.
@@ -119,12 +119,12 @@ class MultipanelPlot(object):
 
         if self.saveplot is not None:
             resolution = 10000
-        else: 
+        else:
             resolution = 2000
 
         periods = []
         for i in range(self.num_planets):
-            periods.append(synthparams['per%d' % (i+1)].value)            
+            periods.append(synthparams['per%d' % (i+1)].value)
         if len(periods) > 0:
             longp = max(periods)
         else:
@@ -135,7 +135,7 @@ class MultipanelPlot(object):
             min(self.rvtimes) - 0.05 * self.dt, max(self.rvtimes) + 0.05 * self.dt + longp,
             int(resolution)
         )
-        
+
         self.orbit_model = self.model(self.rvmodt)
         self.rvmod = self.model(self.rvtimes)
 
@@ -162,7 +162,7 @@ class MultipanelPlot(object):
         # list for Axes objects
         self.ax_list = []
 
-    def plot_timeseries(self):
+    def plot_timeseries(self, FigTitle=None):
         """
         Make a plot of the RV data and model in the current Axes.
         """
@@ -194,7 +194,7 @@ class MultipanelPlot(object):
         if self.set_xlim is not None:
             ax.set_xlim(self.set_xlim)
         else:
-            ax.set_xlim(min(self.plttimes)-0.01*self.dt, max(self.plttimes)+0.01*self.dt)    
+            ax.set_xlim(min(self.plttimes)-0.01*self.dt, max(self.plttimes)+0.01*self.dt)
         pl.setp(ax.get_xticklabels(), visible=False)
 
         if self.highlight_last:
@@ -213,9 +213,12 @@ class MultipanelPlot(object):
         axyrs.get_xaxis().get_major_formatter().set_useOffset(False)
         axyrs.set_xlim(*decimalyear)
         axyrs.set_xlabel('Year', fontweight='bold')
+        if FigTitle:
+            axyrs.set_title(FigTitle)
         pl.locator_params(axis='x', nbins=5)
+        pl.tight_layout()
 
-        if not self.yscale_auto: 
+        if not self.yscale_auto:
             scale = np.std(self.rawresid+self.rvmod)
             ax.set_ylim(-self.yscale_sigma * scale, self.yscale_sigma * scale)
 
@@ -227,13 +230,13 @@ class MultipanelPlot(object):
         """
         Make a plot of residuals and RV trend in the current Axes.
         """
-        
+
         ax = pl.gca()
 
         ax.plot(self.mplttimes, self.slope, 'b-', lw=self.fit_linewidth)
 
         plot.mtelplot(self.plttimes, self.resid, self.rverr, self.post.likelihood.telvec, ax, telfmts=self.telfmts)
-        if not self.yscale_auto: 
+        if not self.yscale_auto:
             scale = np.std(self.resid)
             ax.set_ylim(-self.yscale_sigma * scale, self.yscale_sigma * scale)
 
@@ -247,28 +250,28 @@ class MultipanelPlot(object):
             ax.set_xlim(min(self.plttimes)-0.01*self.dt, max(self.plttimes)+0.01*self.dt)
         ticks = ax.yaxis.get_majorticklocs()
         ax.yaxis.set_ticks([ticks[0], 0.0, ticks[-1]])
-        pl.xlabel('JD - {:d}'.format(int(np.round(self.epoch))), weight='bold')
+        pl.xlabel('JD - {:d}'.format(int(np.round(self.epoch))), weight='bold', size=15)
         ax.set_ylabel('Residuals', weight='bold')
         ax.yaxis.set_major_locator(MaxNLocator(5, prune='both'))
 
-    def plot_phasefold(self, pltletter, pnum):
+    def plot_phasefold(self, pltletter, pnum, FigTitle=None):
         """
         Plot phased orbit plots for each planet in the fit.
 
         Args:
-            pltletter (int): integer representation of 
+            pltletter (int): integer representation of
                 letter to be printed in the corner of the first
                 phase plot.
                 Ex: ord("a") gives 97, so the input should be 97.
             pnum (int): the number of the planet to be plotted. Must be
-                the same as the number used to define a planet's 
+                the same as the number used to define a planet's
                 Parameter objects (e.g. 'per1' is for planet #1)
 
         """
 
         ax = pl.gca()
 
-        if len(self.post.likelihood.x) < 20: 
+        if len(self.post.likelihood.x) < 20:
             self.nobin = True
 
         bin_fac = 1.75
@@ -288,6 +291,8 @@ class MultipanelPlot(object):
         ax.axhline(0, color='0.5', linestyle='--', )
         ax.plot(sorted(modph), rvmod2cat[np.argsort(modph)], 'b-', linewidth=self.fit_linewidth)
         plot.labelfig(pltletter)
+        if FigTitle:
+            pl.title(FigTitle)
 
         telcat = np.concatenate((self.post.likelihood.telvec, self.post.likelihood.telvec))
 
@@ -299,7 +304,7 @@ class MultipanelPlot(object):
             pl.plot(hphase, rvdatcat[ind], **plot.highlight_format)
 
         plot.mtelplot(phase, rvdatcat, rverrcat, telcat, ax, telfmts=self.telfmts)
-        if not self.nobin and len(rvdat) > 10: 
+        if not self.nobin and len(rvdat) > 10:
             ax.errorbar(
                 bint, bindat, yerr=binerr, fmt='ro', mec='w', ms=bin_markersize,
                 mew=bin_markeredgewidth
@@ -310,10 +315,10 @@ class MultipanelPlot(object):
         else:
             ax.set_xlim(-0.5, 0.5)
 
-        if not self.yscale_auto: 
+        if not self.yscale_auto:
             scale = np.std(rvdatcat)
             ax.set_ylim(-self.yscale_sigma*scale, self.yscale_sigma*scale)
-        
+
         keys = [p+str(pnum) for p in ['per', 'k', 'e']]
 
         labels = [self.post.params.tex_labels().get(k, k) for k in keys]
@@ -330,7 +335,7 @@ class MultipanelPlot(object):
         anotext = []
         for l, p in enumerate(print_params):
             val = self.post.params["%s%d" % (print_params[l], pnum)].value
-            
+
             if self.uparams is None:
                 _anotext = r'$\mathregular{%s}$ = %4.2f %s' % (labels[l].replace("$", ""), val, units[p])
             else:
@@ -394,14 +399,14 @@ class MultipanelPlot(object):
             bbox=dict(ec='none', fc='w', alpha=0.8)
         )
 
-    def plot_multipanel(self, nophase=False, letter_labels=True):
+    def plot_multipanel(self, nophase=False, letter_labels=True, FigTitle=None):
         """
         Provision and plot an RV multipanel plot
 
         Args:
             nophase (bool, optional): if True, don't
                 include phase plots. Default: False.
-            letter_labels (bool, optional): if True, include 
+            letter_labels (bool, optional): if True, include
                 letter labels on orbit and residual plots.
                 Default: True.
 
@@ -420,7 +425,7 @@ class MultipanelPlot(object):
 
         # provision figure
         fig = pl.figure(figsize=(self.figwidth, figheight))
-        
+
         fig.subplots_adjust(left=0.12, right=0.95)
         gs_rv = gridspec.GridSpec(2, 1, height_ratios=[1., 0.5])
 
@@ -455,7 +460,7 @@ class MultipanelPlot(object):
 
             if self.phase_ncols == 1:
                 gs_phase.update(left=0.12, right=0.93,
-                                top=divide - self.rv_phase_space * 0.5,
+                                top=divide - self.rv_phase_space * 0.5 - 0.05,
                                 bottom=0.07, hspace=0.003)
             else:
                 gs_phase.update(left=0.12, right=0.93,
@@ -469,7 +474,7 @@ class MultipanelPlot(object):
                 self.ax_list += [ax_phase]
 
                 pl.sca(ax_phase)
-                self.plot_phasefold(pltletter, i+1)
+                self.plot_phasefold(pltletter, i+1, FigTitle=FigTitle)
                 pltletter += 1
 
         if self.saveplot is not None:
@@ -482,10 +487,10 @@ class MultipanelPlot(object):
 class GPMultipanelPlot(MultipanelPlot):
     """
     Class to handle the creation of RV multipanel plots for posteriors fitted
-    using Gaussian Processes. 
+    using Gaussian Processes.
 
     Takes the same args as MultipanelPlot, with a few additional bells and whistles...
-    
+
     Args:
         subtract_gp_mean_model (bool, optional): if True, subtract the Gaussian
             process mean max likelihood model from the data and the
@@ -493,7 +498,7 @@ class GPMultipanelPlot(MultipanelPlot):
         plot_likelihoods_separately (bool, optional): if True, plot a separate
             panel for each Likelihood object. Default: False
         subtract_orbit_model (bool, optional): if True, subtract the best-fit
-            orbit model from the data and the model when plotting 
+            orbit model from the data and the model when plotting
             the results. Useful for seeing the structure of correlated
             noise in the data. Default: False.
         status (ConfigParser): (optional) result of radvel.driver.load_status on the .stat status file
@@ -510,7 +515,7 @@ class GPMultipanelPlot(MultipanelPlot):
             post, saveplot=saveplot, epoch=epoch, yscale_auto=yscale_auto,
             yscale_sigma=yscale_sigma, phase_nrows=phase_nrows, phase_ncols=phase_ncols,
             uparams=uparams, rv_phase_space=rv_phase_space, telfmts=telfmts, legend=legend,
-            phase_limits=phase_limits, nobin=nobin, phasetext_size=phasetext_size, 
+            phase_limits=phase_limits, nobin=nobin, phasetext_size=phasetext_size,
             figwidth=figwidth, fit_linewidth=fit_linewidth, set_xlim=set_xlim, text_size=text_size,
             legend_kwargs=legend_kwargs
         )
@@ -532,14 +537,14 @@ class GPMultipanelPlot(MultipanelPlot):
 
     def plot_gp_like(self, like, orbit_model4data, ci):
         """
-        Plot a single Gaussian Process Likleihood object in the current Axes, 
+        Plot a single Gaussian Process Likleihood object in the current Axes,
         including Gaussian Process uncertainty bands.
 
         Args:
             like (radvel.GPLikelihood): radvel.GPLikelihood object. The model
                 plotted will be generated from `like.params`.
-            orbit_model4data (numpy array): 
-            ci (int): index to use when choosing a color to plot from 
+            orbit_model4data (numpy array):
+            ci (int): index to use when choosing a color to plot from
                 radvel.plot.default_colors. This is only used if the
                 Likelihood object being plotted is not in the list of defaults.
                 Increments by 1 if it is used.
@@ -581,7 +586,7 @@ class GPMultipanelPlot(MultipanelPlot):
                 color = plot.default_colors[ci]
                 ci += 1
 
-            ax.fill_between(xpred, gpmu+gp_orbit_model-stddev, gpmu+gp_orbit_model+stddev, 
+            ax.fill_between(xpred, gpmu+gp_orbit_model-stddev, gpmu+gp_orbit_model+stddev,
                             color=color, alpha=0.5, lw=0
                             )
             ax.plot(xpred, gpmu+gp_orbit_model, 'b-', rasterized=False, lw=0.1)
@@ -590,7 +595,7 @@ class GPMultipanelPlot(MultipanelPlot):
             # plot orbit model
             ax.plot(self.mplttimes, self.orbit_model, 'b-', rasterized=False, lw=0.1)
 
-        if not self.yscale_auto: 
+        if not self.yscale_auto:
             scale = np.std(self.rawresid+self.rvmod)
             ax.set_ylim(-self.yscale_sigma * scale, self.yscale_sigma * scale)
 
@@ -628,7 +633,7 @@ class GPMultipanelPlot(MultipanelPlot):
         if self.set_xlim is not None:
             ax.set_xlim(self.set_xlim)
         else:
-            ax.set_xlim(min(self.plttimes)-0.01*self.dt, max(self.plttimes)+0.01*self.dt)    
+            ax.set_xlim(min(self.plttimes)-0.01*self.dt, max(self.plttimes)+0.01*self.dt)
         pl.setp(ax.get_xticklabels(), visible=False)
 
         # legend
@@ -648,9 +653,9 @@ class GPMultipanelPlot(MultipanelPlot):
 
     def plot_multipanel(self, nophase=False):
         """
-        Provision and plot an RV multipanel plot for a Posterior object containing 
-        one or more Gaussian Process Likelihood objects. 
-        
+        Provision and plot an RV multipanel plot for a Posterior object containing
+        one or more Gaussian Process Likelihood objects.
+
         Args:
             nophase (bool, optional): if True, don't
                 include phase plots. Default: False.
@@ -674,7 +679,7 @@ class GPMultipanelPlot(MultipanelPlot):
 
             # provision figure
             fig = pl.figure(figsize=(self.figwidth, figheight))
-            
+
             fig.subplots_adjust(left=0.12, right=0.95)
 
             hrs = np.zeros(n_likes+1) + 1.
@@ -713,7 +718,7 @@ class GPMultipanelPlot(MultipanelPlot):
                     self.post.likelihood.telvec, ax, telfmts=self.telfmts
                 )
 
-                ax.set_xlim(min(self.plttimes)-0.01*self.dt, max(self.plttimes)+0.01*self.dt)    
+                ax.set_xlim(min(self.plttimes)-0.01*self.dt, max(self.plttimes)+0.01*self.dt)
                 pl.setp(ax.get_xticklabels(), visible=False)
 
                 # legend
@@ -728,10 +733,10 @@ class GPMultipanelPlot(MultipanelPlot):
                     axyrs.plot(decimalyear, decimalyear)
                     axyrs.get_xaxis().get_major_formatter().set_useOffset(False)
                     axyrs.set_xlim(*decimalyear)
-                    axyrs.set_xlabel('Year', fontweight='bold')    
+                    axyrs.set_xlabel('Year', fontweight='bold')
 
                 plot.labelfig(pltletter)
-                pltletter += 1  
+                pltletter += 1
 
             # residuals
             ax_resid = pl.subplot(gs_rv[-1, 0])

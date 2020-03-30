@@ -19,6 +19,8 @@ telfmts_default = {
     'h': dict(color='firebrick', fmt="s", label='HARPS'),
     'harps-n': dict(color='firebrick', fmt='^', label='HARPS-N'),
     'l': dict(color='g', fmt='*', label='LICK'),
+    'hpf': dict(color='maroon', fmt='o', label='HPF'),
+    'neid': dict(color='limegreen', fmt='o', label='NEID')
 }
 telfmts_default['lick'] = telfmts_default['l']
 telfmts_default['hires_rj'] = telfmts_default['j']
@@ -34,6 +36,9 @@ telfmts_default['APF'] = telfmts_default['a']
 telfmts_default['HARPS'] = telfmts_default['h']
 telfmts_default['HARPS-N'] = telfmts_default['harps-n']
 telfmts_default['PFS'] = telfmts_default['pfs']
+telfmts_default['HPF'] = telfmts_default['hpf']
+telfmts_default['NEID'] = telfmts_default['neid']
+
 
 
 cmap = nipy_spectral
@@ -54,7 +59,7 @@ def telplot(x, y, e, tel, ax, lw=1., telfmt={}, rms=0):
     tel (string): telecsope string key
     ax (matplotlib.axes.Axes): current Axes object
     lw (float): line-width for error bars
-    telfmt (dict): dictionary corresponding to kwargs 
+    telfmt (dict): dictionary corresponding to kwargs
         passed to errorbar. Example:
 
         telfmt = dict(fmt='o',label='HIRES',color='red')
@@ -62,7 +67,7 @@ def telplot(x, y, e, tel, ax, lw=1., telfmt={}, rms=0):
 
     # Default formatting
     kw = dict(
-        fmt='o', capsize=0, mew=0, 
+        fmt='o', capsize=0, mew=0,
         ecolor='0.6', lw=lw, color='orange',
     )
 
@@ -81,7 +86,7 @@ def telplot(x, y, e, tel, ax, lw=1., telfmt={}, rms=0):
 
     if rms:
         kw['label'] += '\nRMS={:.2f} {:s}'.format(rms, latex['ms'])
-        
+
     pl.errorbar(x, y, yerr=e, **kw)
 
 
@@ -94,9 +99,9 @@ def mtelplot(x, y, e, tel, ax, lw=1., telfmts={}, **kwargs):
     e (array): RV error
     tel (array): array of telecsope string keys
     ax (matplotlib.axes.Axes): current Axes object
-    telfmts (dict): dictionary of dictionaries corresponding to kwargs 
+    telfmts (dict): dictionary of dictionaries corresponding to kwargs
         passed to errorbar. Example:
-        
+
         telfmts = {
              'hires': dict(fmt='o',label='HIRES'),
              'harps-n' dict(fmt='s')
@@ -122,7 +127,7 @@ def mtelplot(x, y, e, tel, ax, lw=1., telfmts={}, **kwargs):
                 ci +=1
         elif t not in telfmts and t not in telfmts_default:
             telfmt = dict(color=default_colors[ci])
-            ci +=1 
+            ci +=1
         else:
             telfmt = {}
 
@@ -147,7 +152,7 @@ def add_anchored(*args, **kwargs):
     Args:
         s (string): text
         loc (string): location code
-        pad (float [optional]): pad between the text and the frame 
+        pad (float [optional]): pad between the text and the frame
             as fraction of the font size
         borderpad (float [optional]): pad between the frame and the axes (or *bbox_to_anchor*)
         prop (matplotlib.font_manager.FontProperties): font properties
@@ -176,4 +181,3 @@ def labelfig(letter):
         text, loc=2, prop=dict(fontweight='bold', size='large'),
         frameon=False
     )
-
